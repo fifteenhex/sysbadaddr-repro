@@ -1,0 +1,7 @@
+# built binaries, one per arch
+sysbadaddr-*
+
+# nolibc headers plus uapi headers, installed from a kernel tree
+sysroot/
+
+*.log
