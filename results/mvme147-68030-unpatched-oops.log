@@ -1,0 +1,28 @@
+# Physical MC68030 (MVME147) system, Linux 7.3.0, no patch.
+# sysbadaddr reproducer, offset 1 (faddr/daddr = c0000fff / c0001000). The 030
+# takes a format-B bus fault in copy_to_user and oopses. Symbols are absent on
+# this build (DEBUG_INFO/KALLSYMS off), hence the raw addresses.
+# (Console login noise stripped.)
+
+[   84.240000] Unable to handle kernel access at virtual address 818d3820
+[   84.250000] Oops: 00000000
+[   84.260000] PC: [<003a9122>] 0x003a9122
+[   84.270000] SR: 2004  SP: 6df6d78a  a2: 005e8000
+[   84.280000] d0: 00000000    d1: 00000001    d2: 2f746d70    d3: 005ee000
+[   84.290000] d4: 005eeffb    d5: c0000fff    a0: 005eefff    a1: c0001003
+[   84.310000] Process sb (pid: 47, task=a613770f)
+[   84.330000] Frame format=B ssw=0739 isc=0801 isb=0001 daddr=c0001000 dobuf=2f746d70
+[   84.340000] baddr=003a9126 dibuf=2f746d70 ver=f
+[   84.350000] Stack from 005ebf8c:
+[   84.350000]         00000005 00101370 c0000fff 005eeffb 00000005 00001000 c0000000 00000003
+[   84.350000]         00000022 004781b0 0062fa80 004d11b0 004d0100 005eeffb 00000ffb 00006452
+[   84.350000]         c0000fff 00001000 c0000000 00000003 00000022 00000000 00000000 80000476
+[   84.350000]         000000b7 000000b7 00000000 00108000 02a00080
+[   84.390000] Call Trace:
+[   84.390000]         [<00101370>] 0x00101370
+[   84.420000]  [<00001000>] 0x00001000
+[   84.430000]  [<00006452>] 0x00006452
+[   84.440000]  [<00001000>] 0x00001000
+[   84.460000]  [<00108000>] 0x00108000
+[   84.480000] Code: 226f 0008 4a80 670a 2418 0e99 2800 5380 <66f6> 0801 0001 6706 3418 0e59 2800 0801 0000 6706 1418 0e19 2800 241f 4e75 2f02
+[   84.510000] Disabling lock debugging due to kernel taint

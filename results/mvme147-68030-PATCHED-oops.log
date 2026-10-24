@@ -1,0 +1,28 @@
+# Physical MC68030 (MVME147) system, Linux 7.3.0, WITH Finn Thain's put_user()
+# patch applied. STILL oopses, identically to the unpatched run: the 030 fault
+# path (bus_error030 -> do_page_fault -> send_fault_sig) never calls put_user(),
+# so the put_user()-only patch has no effect here. Symbols absent on this build
+# (DEBUG_INFO/KALLSYMS off). (Console login noise stripped.)
+
+[   55.340000] Unable to handle kernel access at virtual address da252b4a
+[   55.350000] Oops: 00000000
+[   55.360000] PC: [<003a937c>] 0x003a937c
+[   55.370000] SR: 2004  SP: f48570c8  a2: 00454000
+[   55.380000] d0: 00000000    d1: 00000001    d2: 2f746d70    d3: 0045e000
+[   55.400000] d4: 0045effb    d5: c0000fff    a0: 0045efff    a1: c0001003
+[   55.430000] Process sb (pid: 41, task=5e9ed155)
+[   55.440000] Frame format=B ssw=0739 isc=0801 isb=6606 daddr=c0001000 dobuf=2f746d70
+[   55.450000] baddr=003a9380 dibuf=2f746d70 ver=f
+[   55.470000] Stack from 00457f8c:
+[   55.470000]         00000005 0010147e c0000fff 0045effb 00000005 00001000 c0000000 00000003
+[   55.470000]         00000022 004781b0 00636a80 004d11b0 004d0100 0045effb 00000ffb 00006452
+[   55.470000]         c0000fff 00001000 c0000000 00000003 00000022 00000000 00000000 80000476
+[   55.470000]         000000b7 000000b7 00000000 00108000 02a00080
+[   55.520000] Call Trace:
+[   55.520000]         [<0010147e>] 0x0010147e
+[   55.540000]  [<00001000>] 0x00001000
+[   55.560000]  [<00001000>] 0x00001000
+[   55.580000]  [<00006452>] 0x00006452
+[   55.600000]  [<00108000>] 0x00108000
+[   55.620000] Code: 226f 0008 4a80 670a 2418 0e99 2800 5380 <66f6> 0801 0001 6706 3418 0e59 2800 0801 0000 6706 1418 0e19 2800 241f 4e75 2f02
+[   55.650000] Disabling lock debugging due to kernel taint

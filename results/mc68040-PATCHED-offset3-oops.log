@@ -1,0 +1,32 @@
+# Physical MC68040 system, mainline Linux 7.3.0, WITH Finn Thain's put_user()
+# patch applied. Offsets 1 and 2 now return a clean EFAULT; offset 3 (3 bytes
+# of the longword inside the page, faddr = c0000ffd) still oopses. The faulting
+# instruction (<1418>) is further into the copy routine than the first-offset
+# case (+0x36 vs +0x22). (Console login noise stripped.)
+
+Unable to handle kernel access at virtual address 505c25c6
+Oops: 00000000
+Modules linked in:
+PC: [<0043d056>] __generic_copy_to_user+0x36/0x40
+SR: 2000  SP: fd874a5a  a2: 00970600
+d0: 00000000    d1: 00000001    d2: 2f746d70    d3: 0084a000
+d4: c0000ffd    d5: 00001000    a0: 0084afff    a1: c0001001
+Process sb (pid: 65, task=62102b7e)
+Frame format=7 eff addr=0151bf54 ssw=0c81 faddr=c0000ffd
+wb 1 stat/addr/data: 0001 80000328 00000000
+wb 2 stat/addr/data: 0081 c0000ffd 2f746d70
+wb 3 stat/addr/data: 0005 0151bf88 2f746d70
+push data: 00000000 00000014 0084affb 00000ffb
+Stack from 0151bf88:
+        00000005 00160f92 c0000ffd 0084affb 00000005 00001000 c0000000 00000022
+        ffffffff 008fa900 00c22174 008604f0 00c06a2c 0084affb 00000ffb 80000c06
+        0000a5c6 c0000ffd 00001000 c0000000 00000022 ffffffff 00000000 00000000
+        80000476 000000b7 000000b7 00000000 00108000 02a00080
+Call Trace: [<00160f92>] sys_getcwd+0xfc/0x11e
+ [<00001000>] kernel_pg_dir+0x0/0x1000
+ [<0000a5c6>] syscall+0x8/0xc
+ [<00001000>] kernel_pg_dir+0x0/0x1000
+ [<00108000>] do_swap_page+0x4ae/0x668
+
+Code: 0001 6706 3418 0e59 2800 0801 0000 6706 <1418> 0e19 2800 241f 4e75 2f02 222f 000c 2001 e488 7403 c282 206f 0008 4282 4a80
+Disabling lock debugging due to kernel taint

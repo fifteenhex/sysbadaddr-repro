@@ -1,0 +1,31 @@
+# Physical MC68040 system, mainline Linux 7.3.0, no patch.
+# sysbadaddr reproducer, offset 1 (buffer's first byte is the last byte of the
+# page; faddr = c0000fff). The straddling copy_to_user store faults and is not
+# recovered -> oops. (Console login noise stripped; capture de-duplicated.)
+
+Unable to handle kernel access at virtual address a5e4cfdb
+Oops: 00000000
+Modules linked in:
+PC: [<0043ce3e>] __generic_copy_to_user+0x22/0x40
+SR: 2004  SP: c0108cf7  a2: 0128c200
+d0: 00000000    d1: 00000001    d2: 2f746d70    d3: 0084a000
+d4: c0000fff    d5: 00001000    a0: 0084afff    a1: c0001003
+Process sb (pid: 243, task=46055fac)
+Frame format=7 eff addr=014c7f54 ssw=0c81 faddr=c0000fff
+wb 1 stat/addr/data: 0001 80000328 00000000
+wb 2 stat/addr/data: 0081 c0000fff 2f746d70
+wb 3 stat/addr/data: 0005 014c7f88 2f746d70
+push data: 00000000 00000014 0084affb 00000ffb
+Stack from 014c7f88:
+        00000005 00160e92 c0000fff 0084affb 00000005 00001000 c0000000 00000022
+        ffffffff 0085f420 00c059b0 008604f0 00c06a2c 0084affb 00000ffb 80000bfe
+        0000a5c6 c0000fff 00001000 c0000000 00000022 ffffffff 00000000 00000000
+        80000476 000000b7 000000b7 00000000 00108000 02a00080
+Call Trace: [<00160e92>] sys_getcwd+0xfc/0x11e
+ [<00001000>] kernel_pg_dir+0x0/0x1000
+ [<0000a5c6>] syscall+0x8/0xc
+ [<00001000>] kernel_pg_dir+0x0/0x1000
+ [<00108000>] do_swap_page+0x57a/0x668
+
+Code: 226f 0008 4a80 670a 2418 0e99 2800 5380 <66f6> 0801 0001 6706 3418 0e59 2800 0801 0000 6706 1418 0e19 2800 241f 4e75 2f02
+Disabling lock debugging due to kernel taint

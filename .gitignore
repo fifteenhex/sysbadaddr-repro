@@ -5,3 +5,5 @@ sysbadaddr-*
 sysroot/
 
 *.log
+# ...except the captured oops/result logs we deliberately keep
+!results/*.log
