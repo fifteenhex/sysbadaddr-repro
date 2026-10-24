@@ -71,6 +71,43 @@ complete fix appears to need the same treatment on the copy/clear routines'
 own `moves` stores (which is the path both CPUs share, and the only path the
 030 uses), and possibly additional care for the 68040's second writeback.
 
+## Fix
+
+`extended-fix.patch` makes the reproducer survive on **both** CPUs — all three
+offsets return a clean `EFAULT` (`mc68040-FIXED.log`, `mvme147-68030-FIXED.log`):
+
+- Keep Finn's `nop`-after-`moves` in `__put_user_asm`/`__put_user_asm8` (still
+  correct for a direct multi-byte `put_user()` straddle).
+- Add a destination-alignment preamble to `__generic_copy_to_user()` that
+  copies leading bytes one at a time until the user pointer is longword
+  aligned, before the bulk `moves.l` loop:
+
+  ```c
+  while (n && ((unsigned long)to & 3)) {
+          if (__put_user(*(const char *)from, (char __user *)to))
+                  return n;
+          to = (char __user *)to + 1;
+          from = (const char *)from + 1;
+          n--;
+  }
+  ```
+
+A longword-aligned store lies wholly within one 4096-aligned page, so the
+bulk `moves.l` can never straddle a page boundary. The straddling partial
+store — the root cause of both the 68040 writeback-replay oops and the 68030
+missed-exception-table oops — simply never happens: the faulting store is now
+atomic and fully out of the page, and the copy routine's existing `2b,20b`
+exception-table fixup returns the right byte count identically on both CPUs.
+
+The hot longword loop is untouched (no per-iteration `nop`); the preamble is
+one cheap test in the common aligned case and at most three byte stores for a
+misaligned destination, so throughput is unaffected. For a complete upstream
+submission `__clear_user()` (also stores via `moves`) should get the same
+alignment treatment; `copy_from_user()` only reads and creates no partial
+writeback. Note: these runs tested the alignment preamble together with
+Finn's `nop` — the alignment is the essential new ingredient (Finn's patch
+alone was already shown insufficient), but alignment-alone was not isolated.
+
 ## Note on the thread's "tested on 68030 and 68040"
 
 The posted patch carries `Reviewed-and-tested-by` and says it was tested on

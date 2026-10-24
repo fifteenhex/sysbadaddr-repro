@@ -1,0 +1,65 @@
+diff --git a/arch/m68k/include/asm/uaccess.h b/arch/m68k/include/asm/uaccess.h
+index 31d133faa45e..728a6dfb7414 100644
+--- a/arch/m68k/include/asm/uaccess.h
++++ b/arch/m68k/include/asm/uaccess.h
+@@ -31,11 +31,12 @@
+ #define __put_user_asm(inst, res, x, ptr, bwl, reg, err) \
+ asm volatile ("\n"					\
+ 	"1:	"inst"."#bwl"	%2,%1\n"		\
+-	"2:\n"						\
++	"2:	nop\n"					\
++	"3:\n"						\
+ 	"	.section .fixup,\"ax\"\n"		\
+ 	"	.even\n"				\
+ 	"10:	moveq.l	%3,%0\n"			\
+-	"	jra 2b\n"				\
++	"	jra 3b\n"				\
+ 	"	.previous\n"				\
+ 	"\n"						\
+ 	"	.section __ex_table,\"a\"\n"		\
+@@ -53,11 +54,12 @@ do {								\
+ 	asm volatile ("\n"					\
+ 		"1:	"inst".l %2,(%1)+\n"			\
+ 		"2:	"inst".l %R2,(%1)\n"			\
+-		"3:\n"						\
++		"3:	nop\n"					\
++		"4:\n"						\
+ 		"	.section .fixup,\"ax\"\n"		\
+ 		"	.even\n"				\
+ 		"10:	movel %3,%0\n"				\
+-		"	jra 3b\n"				\
++		"	jra 4b\n"				\
+ 		"	.previous\n"				\
+ 		"\n"						\
+ 		"	.section __ex_table,\"a\"\n"		\
+diff --git a/arch/m68k/lib/uaccess.c b/arch/m68k/lib/uaccess.c
+index 80c76c4e6c32..d2dcaa1d2a3f 100644
+--- a/arch/m68k/lib/uaccess.c
++++ b/arch/m68k/lib/uaccess.c
+@@ -70,6 +70,26 @@ unsigned long __generic_copy_to_user(void __user *to, const void *from,
+ {
+ 	unsigned long tmp, res;
+ 
++	/*
++	 * Align the user destination to a longword boundary first.  A MOVES
++	 * store that straddles a page boundary commits the bytes landing in the
++	 * mapped page and then faults on the unmapped one.  On the 68040 that
++	 * partial store becomes a pending writeback which do_040writebacks()
++	 * replays through put_user(); that replay cannot be unwound back into
++	 * the copy's EFAULT and oopses.  On the 68030 the straddling fault is
++	 * reported with a PC past the MOVES, so the exception table is missed
++	 * and it oopses too.  A longword-aligned store lies wholly within one
++	 * page, so it either completes or faults cleanly and the existing
++	 * exception-table fixup returns the right byte count on every CPU.
++	 */
++	while (n && ((unsigned long)to & 3)) {
++		if (__put_user(*(const char *)from, (char __user *)to))
++			return n;
++		to = (char __user *)to + 1;
++		from = (const char *)from + 1;
++		n--;
++	}
++
+ 	asm volatile ("\n"
+ 		"	tst.l	%0\n"
+ 		"	jeq	4f\n"

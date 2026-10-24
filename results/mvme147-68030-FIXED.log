@@ -1,0 +1,13 @@
+# Physical MC68030 (MVME147) system, Linux 7.3.0, WITH the extended fix
+# (results/extended-fix.patch: Finn's put_user() nop plus a destination-
+# alignment preamble in __generic_copy_to_user). All three offsets now
+# return a clean EFAULT instead of oopsing -- the original put_user()-only
+# patch had no effect on the 68030.
+
+m68k put_user() writeback fault reproducer
+page size 4096, 1 round
+cwd is "/tmp" (5 bytes incl. NUL)
+  getcwd(0xc0000fff, 4096): last 1 byte of the page ... EFAULT, ok
+  getcwd(0xc0000ffe, 4096): last 2 bytes of the page ... EFAULT, ok
+  getcwd(0xc0000ffd, 4096): last 3 bytes of the page ... EFAULT, ok
+survived, 0 unexpected results
