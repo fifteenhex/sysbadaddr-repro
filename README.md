@@ -69,3 +69,7 @@ on the thread.
 
 Verified natively on x86-64 as well, to confirm the straddling buffer is
 accepted by `access_ok()` and the copy is what faults.
+
+Real hardware since then: a 68040 and a 68030 (MVME147) both oops
+unpatched and need the extended fix; a 68060 (Amiga 4000, TF4060) is not
+affected and is unharmed by the fix. See `results/FINDINGS.md`.

@@ -1,0 +1,13 @@
+# Physical MC68060 (rev 6) system: Amiga 4000 + TF4060 at 58 MHz.
+# Linux 7.4.0-rc2 (a4000 tree at f24f247582f1) WITH results/extended-fix.patch.
+# ./sysbadaddr-m68k 200: first round and the summary line; dmesg clean.
+
+m68k put_user() writeback fault reproducer
+page size 4096, 200 rounds
+cwd is "/tmp" (5 bytes incl. NUL)
+round 1:
+  getcwd(0xc0005fff, 4096): last 1 byte of the page ... EFAULT, ok
+  getcwd(0xc0005ffe, 4096): last 2 bytes of the page ... EFAULT, ok
+  getcwd(0xc0005ffd, 4096): last 3 bytes of the page ... EFAULT, ok
+  ...
+survived, 0 unexpected results

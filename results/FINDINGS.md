@@ -33,6 +33,8 @@ kernel faulted instead.
 | MC68040 | Finn's | EFAULT ok       | EFAULT ok       | **oops**        |
 | MC68030 | none  | **oops**        | —               | —               |
 | MC68030 | Finn's | **oops**        | —               | —               |
+| MC68060 | none  | EFAULT ok       | EFAULT ok       | EFAULT ok       |
+| MC68060 | extended fix | EFAULT ok | EFAULT ok       | EFAULT ok       |
 
 Raw (de-duplicated, login-noise-stripped) oops dumps are the `*.log` files
 alongside this one.
@@ -107,6 +109,31 @@ alignment treatment; `copy_from_user()` only reads and creates no partial
 writeback. Note: these runs tested the alignment preamble together with
 Finn's `nop` — the alignment is the essential new ingredient (Finn's patch
 alone was already shown insufficient), but alignment-alone was not isolated.
+
+## 68060 (added 18 Nov 2026)
+
+A real **MC68060** (rev 6, PCR `0x04300601`, full 060 with FPU and MMU):
+an Amiga 4000 with a TerribleFire TF4060 at 58 MHz, Linux 7.4.0-rc2 (m68k
+multi config). Logs: `a4000-68060-unpatched.log`, `a4000-68060-FIXED.log`.
+
+- **Unpatched: not affected.** All three offsets return `EFAULT`, for 3
+  rounds and then 200 rounds (600 straddling stores each), with nothing in
+  `dmesg`. The 68060 has no deferred writebacks: an access error is a
+  format-4 frame taken against the faulting instruction, which is
+  restarted after the fault is handled, so the `moves.l` that straddles the
+  page boundary is the PC the exception table sees and the copy's own
+  `2b,20b` fixup returns the byte count. Neither the 68040 writeback replay
+  nor the 68030 PC-past-the-`moves` case exists on this CPU.
+- **With `extended-fix.patch`: still fine.** 200 rounds, all `EFAULT`,
+  `dmesg` clean, so the alignment preamble and the `nop`s do not regress
+  the 060. (The kernel's disassembly confirms the preamble's `moves.b`
+  loop is in `__generic_copy_to_user()`.)
+- Finn's patch alone was not run here: the unpatched kernel already
+  survives, so there is nothing for it to change on this CPU.
+
+So the bug is specific to the 68030 and 68040 exception models. A fix
+that touches the shared copy routine should still be run on an 060, as
+done here, since the same code is built into 060 kernels.
 
 ## Note on the thread's "tested on 68030 and 68040"
 

@@ -1,0 +1,19 @@
+# Physical MC68060 (rev 6, PCR 0x04300601) system: Amiga 4000 + TerribleFire TF4060
+# at 58 MHz. Linux 7.4.0-rc2 (m68k multi, a4000 tree, kernel #26), NO patch.
+# ./sysbadaddr-m68k 3 (first lines of the capture lost to the serial
+# console's scrollback); then ./sysbadaddr-m68k 200: survived, dmesg clean.
+
+cwd is "/tmp" (5 bytes incl. NUL)
+round 1:
+  getcwd(0xc0005fff, 4096): last 1 byte of the page ... EFAULT, ok
+  getcwd(0xc0005ffe, 4096): last 2 bytes of the page ... EFAULT, ok
+  getcwd(0xc0005ffd, 4096): last 3 bytes of the page ... EFAULT, ok
+round 2:
+  getcwd(0xc0005fff, 4096): last 1 byte of the page ... EFAULT, ok
+  getcwd(0xc0005ffe, 4096): last 2 bytes of the page ... EFAULT, ok
+  getcwd(0xc0005ffd, 4096): last 3 bytes of the page ... EFAULT, ok
+round 3:
+  getcwd(0xc0005fff, 4096): last 1 byte of the page ... EFAULT, ok
+  getcwd(0xc0005ffe, 4096): last 2 bytes of the page ... EFAULT, ok
+  getcwd(0xc0005ffd, 4096): last 3 bytes of the page ... EFAULT, ok
+survived, 0 unexpected results
